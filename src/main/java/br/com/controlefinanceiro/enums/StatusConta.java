@@ -7,4 +7,12 @@ public enum StatusConta {
     PAGO,
     PERTO_DE_VENCER;
 
+    public static StatusConta[] getPagoVencidoCancelado(){
+        return new StatusConta[]{
+                PAGO,
+                VENCIDA,
+                CANCELADA
+        };
+    }
+
 }

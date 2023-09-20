@@ -21,6 +21,7 @@ import java.net.URI;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
@@ -122,7 +123,7 @@ public class ContaService {
         List<Conta> contas = contaRepository.findAllByDataVencimentoBefore(new Date());
         if (!contas.isEmpty()) {
             for (Conta contaVencida : contas) {
-                if (!contaVencida.getStatusConta().equals(StatusConta.CANCELADA) || !contaVencida.getStatusConta().equals(StatusConta.PAGO)) {
+                if (!Arrays.asList(StatusConta.getPagoVencidoCancelado()).contains(contaVencida.getStatusConta())) {
                     LOGGER.info(String.format("Alterando o status da conta %s para VENCIDA.", contaVencida.getTitulo()));
                     contaVencida.setStatusConta(StatusConta.VENCIDA);
                     contaRepository.save(contaVencida);

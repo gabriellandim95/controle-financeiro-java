@@ -6,6 +6,7 @@ import br.com.controlefinanceiro.enums.TipoLogEvento;
 import br.com.controlefinanceiro.model.Usuario;
 import br.com.controlefinanceiro.service.LogAcessoService;
 import br.com.controlefinanceiro.service.TokenService;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -28,6 +29,7 @@ public class AutenticacaoController {
     @Autowired
     private LogAcessoService logAcessoService;
 
+    @Operation(summary = "Efetuar login.", method = "POST")
     @PostMapping
     public ResponseEntity login(@RequestBody @Valid DadosAutenticacao dados){
         UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(dados.login(), dados.senha());
