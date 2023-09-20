@@ -4,8 +4,8 @@ import br.com.controlefinanceiro.dto.DadosDetalhamentoConta;
 import br.com.controlefinanceiro.dto.DadosConta;
 import br.com.controlefinanceiro.enums.StatusConta;
 import br.com.controlefinanceiro.enums.TipoLogEvento;
+import br.com.controlefinanceiro.infra.exceptions.ContaNotFoundException;
 import br.com.controlefinanceiro.model.Conta;
-import br.com.controlefinanceiro.model.Usuario;
 import br.com.controlefinanceiro.repository.ContaRepository;
 import br.com.controlefinanceiro.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +13,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -24,6 +23,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.logging.Logger;
 
 @Service
@@ -36,57 +36,59 @@ public class ContaService {
     private UsuarioRepository usuarioRepository;
     @Autowired
     private LogAcessoService logAcessoService;
+    @Autowired
+    private UsuarioService usuarioService;
 
-    public ResponseEntity cadastrarConta(DadosConta dados, UriComponentsBuilder uriBuilder, UserDetails usuarioLogado) {
+    public ResponseEntity cadastrarConta(DadosConta dados, UriComponentsBuilder uriBuilder) {
         Conta novaConta = new Conta(dados);
-        Usuario usuario = (Usuario) usuarioRepository.findByLogin(usuarioLogado.getUsername());
-        logAcessoService.gerarEvento(usuarioLogado.getUsername(), "", TipoLogEvento.ACESSO_A_TELA_DE_CRIACAO);
+        logAcessoService.gerarEvento(usuarioService.getDadosUsuario().getLogin(), "Nova Conta", TipoLogEvento.ACESSO_A_TELA_DE_CRIACAO);
 
         novaConta.setStatusConta(StatusConta.EM_ABERTO);
-        novaConta.setUsuario(usuario);
+        novaConta.setUsuario(usuarioService.getDadosUsuario());
         contaRepository.save(novaConta);
 
         URI uri = uriBuilder.path("/conta/{id}").buildAndExpand(novaConta.getId()).toUri();
         return ResponseEntity.created(uri).body(new DadosDetalhamentoConta(novaConta));
     }
 
-    public ResponseEntity alterarConta(Integer id, DadosConta dados, UserDetails usuarioLogado) {
-        Conta conta = contaRepository.findFirstById(id);
-        Usuario usuario = (Usuario) usuarioRepository.findByLogin(usuarioLogado.getUsername());
-        logAcessoService.gerarEvento(usuarioLogado.getUsername(), conta.toString(), TipoLogEvento.ACESSO_A_TELA_DE_EDICAO);
+    public ResponseEntity alterarConta(Long id, DadosConta dados) {
+        Optional<Conta> conta = contaRepository.findById(id);
 
-        if (conta != null) {
-            conta.setTitulo(dados.titulo());
-            conta.setDescricao(dados.descricao());
-            conta.setDataVencimento(dados.dataVencimento());
-            conta.setValor(dados.valor());
-            conta.setStatusConta(dados.statusConta());
-            conta.setUsuario(usuario);
-            contaRepository.save(conta);
+        if (conta.isPresent()){
+            logAcessoService.gerarEvento(usuarioService.getDadosUsuario().getLogin(), conta.toString(), TipoLogEvento.ACESSO_A_TELA_DE_EDICAO);
+
+                conta.get().setTitulo(dados.titulo());
+                conta.get().setDescricao(dados.descricao());
+                conta.get().setDataVencimento(dados.dataVencimento());
+                conta.get().setValor(dados.valor());
+                conta.get().setStatusConta(dados.statusConta());
+                conta.get().setUsuario(usuarioService.getDadosUsuario());
+                contaRepository.save(conta.get());
+
+            return ResponseEntity.ok(new DadosDetalhamentoConta(conta.get()));
         }
-        return ResponseEntity.ok(new DadosDetalhamentoConta(conta));
+        throw new ContaNotFoundException();
     }
 
-    public ResponseEntity<Page<DadosDetalhamentoConta>> listarContas(Pageable pageable, UserDetails usuarioLogado) {
+    public ResponseEntity<Page<DadosDetalhamentoConta>> listarContas(Pageable pageable) {
         Page page;
-        Usuario usuario = (Usuario) usuarioRepository.findByLogin(usuarioLogado.getUsername());
-        if (usuario.getNivelAcesso().equals("ROLE_ADMIN")) {
+        if (usuarioService.getDadosUsuario().getNivelAcesso().equals("ROLE_ADMIN")) {
             page = contaRepository.findAll(pageable).map(DadosDetalhamentoConta::new);
         } else {
-            page = contaRepository.findAllByUsuario(pageable, usuario).map(DadosDetalhamentoConta::new);
+            page = contaRepository.findAllByUsuario(pageable, usuarioService.getDadosUsuario()).map(DadosDetalhamentoConta::new);
         }
 
-        logAcessoService.gerarEvento(usuarioLogado.getUsername(), "Listagem de contas", TipoLogEvento.ACESSO_A_LISTAGEM);
+        logAcessoService.gerarEvento(usuarioService.getDadosUsuario().getLogin(), "Listagem de contas", TipoLogEvento.ACESSO_A_LISTAGEM);
         return ResponseEntity.ok(page);
     }
 
-    public ResponseEntity listarContaById(Integer id, UserDetails usuarioLogado) {
+    public ResponseEntity listarContaById(Long id) {
         Conta conta = contaRepository.findFirstById(id);
-        logAcessoService.gerarEvento(usuarioLogado.getUsername(), conta.toString(), TipoLogEvento.ACESSO_A_LISTAR_POR_ID);
+        logAcessoService.gerarEvento(usuarioService.getDadosUsuario().getUsername(), conta.toString(), TipoLogEvento.ACESSO_A_LISTAR_POR_ID);
         return ResponseEntity.ok(new DadosDetalhamentoConta(conta));
     }
 
-    public ResponseEntity deletarById(Integer id) {
+    public ResponseEntity deletarById(Long id) {
         Conta conta = contaRepository.findFirstById(id);
         if (conta != null) {
             contaRepository.delete(conta);
@@ -101,11 +103,10 @@ public class ContaService {
         List<Conta> contas = contaRepository.findAll();
         if (!contas.isEmpty()) {
             for (Conta contaPertoDeVencer : contas) {
-                if (!contaPertoDeVencer.getStatusConta().equals(StatusConta.CANCELADA) || !contaPertoDeVencer.getStatusConta().equals(StatusConta.PAGO)) {
+                if (!Arrays.asList(StatusConta.getPagoVencidoCancelado()).contains(contaPertoDeVencer.getStatusConta())) {
                     LocalDate dataVencimento = contaPertoDeVencer.getDataVencimento().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
                     LocalDate dataAtual = LocalDate.now();
                     Long diasRestantes = ChronoUnit.DAYS.between(dataAtual, dataVencimento);
-
 
                     if (diasRestantes <= 5 && diasRestantes >= 1) {
                         LOGGER.info(String.format("Alterando o status da conta %s para PERTO DE VENCER.", contaPertoDeVencer.getTitulo()));

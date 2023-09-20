@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -28,11 +27,11 @@ public class UsuarioService {
         List<Usuario> usuariosComLoginExistente = usuarioRepository.findAllByLogin(dados.login());
         List<Usuario> usuariosComEmailExistente = usuarioRepository.findAllByEmail(dados.email());
 
-        if (!usuariosComLoginExistente.isEmpty()){
+        if (!usuariosComLoginExistente.isEmpty()) {
             throw new ConstraintViolationException(String.format("O Login: %s não esta disponivel para uso, por favor tente outro.", dados.login()), null);
         }
 
-        if (!usuariosComEmailExistente.isEmpty()){
+        if (!usuariosComEmailExistente.isEmpty()) {
             throw new ConstraintViolationException(String.format("O E-mail: %s não esta disponivel para uso, por favor tente outro.", dados.email()), null);
         }
 
@@ -52,7 +51,7 @@ public class UsuarioService {
     }
 
     public ResponseEntity inativarUsuario(Integer id) {
-        Usuario usuarioInativado =  usuarioRepository.findByIdAndAtivoTrue(id);
+        Usuario usuarioInativado = usuarioRepository.findByIdAndAtivoTrue(id);
         usuarioInativado.setAtivo(false);
         usuarioRepository.save(usuarioInativado);
 
@@ -60,16 +59,17 @@ public class UsuarioService {
     }
 
     public ResponseEntity ativarUsuario(Integer id) {
-        Usuario usuarioInativado =  usuarioRepository.findByIdAndAtivoFalse(id);
+        Usuario usuarioInativado = usuarioRepository.findByIdAndAtivoFalse(id);
         usuarioInativado.setAtivo(true);
         usuarioRepository.save(usuarioInativado);
         return ResponseEntity.ok().build();
     }
 
-    public UserDetails getUsuarioLogado(){
+    public Usuario getDadosUsuario() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.getPrincipal() instanceof UserDetails) {
-            return (UserDetails) authentication.getPrincipal();
+
+        if (authentication != null && authentication.isAuthenticated()) {
+            return (Usuario) usuarioRepository.findByLogin(authentication.getName());
         }
         return null;
     }

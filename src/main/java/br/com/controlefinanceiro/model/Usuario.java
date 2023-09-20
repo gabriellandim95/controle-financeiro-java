@@ -34,7 +34,7 @@ public class  Usuario implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Long id;
     @Column(length = 30)
     private String login;
     @Column(length = 100)

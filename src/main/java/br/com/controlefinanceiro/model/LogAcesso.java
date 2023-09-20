@@ -11,7 +11,7 @@ public class LogAcesso {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Long id;
     @Column(nullable = false)
     private String usuario;
     @Column(length = 2000, nullable = false)
@@ -31,7 +31,7 @@ public class LogAcesso {
         this.tipoLogEvento = tipoLogEvento;
     }
 
-    public Integer getId() {
+    public Long getId() {
         return id;
     }
 
