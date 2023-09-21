@@ -20,6 +20,7 @@ import org.hibernate.envers.Audited;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.UUID;
 
 @Entity
 @Audited
@@ -34,6 +35,8 @@ public class Conta {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @Column
+    private String uuid = UUID.randomUUID().toString();
     @Column(nullable = false, length = 100)
     private String titulo;
     @Column(length = 1000)
@@ -76,7 +79,7 @@ public class Conta {
                 ", descricao= '" + descricao + '\'' +
                 ", dataCadastro= " + dataCadastro +
                 ", dataVencimento= " + dataVencimento +
-                ", valor= " + valor +
+                ", saldo= " + valor +
                 ", statusConta = " + statusConta +
                 ", usuario = " + usuario.getLogin();
     }

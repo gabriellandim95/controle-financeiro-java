@@ -40,8 +40,8 @@ public class UsuarioService {
         return ResponseEntity.ok().build();
     }
 
-    public ResponseEntity alterarUsuario(Integer id, DadosAtualizadosUsuario dados) {
-        Usuario alterarUsuario = usuarioRepository.findByIdAndAtivoTrue(id);
+    public ResponseEntity alterarUsuario(String uuid, DadosAtualizadosUsuario dados) {
+        Usuario alterarUsuario = usuarioRepository.findByUuid(uuid);
         alterarUsuario.setLogin(dados.login());
         alterarUsuario.setSenha(dados.senha());
         usuarioRepository.save(alterarUsuario);
@@ -50,16 +50,16 @@ public class UsuarioService {
 
     }
 
-    public ResponseEntity inativarUsuario(Integer id) {
-        Usuario usuarioInativado = usuarioRepository.findByIdAndAtivoTrue(id);
+    public ResponseEntity inativarUsuario(String uuid) {
+        Usuario usuarioInativado = usuarioRepository.findByUuid(uuid);
         usuarioInativado.setAtivo(false);
         usuarioRepository.save(usuarioInativado);
 
         return ResponseEntity.ok().build();
     }
 
-    public ResponseEntity ativarUsuario(Integer id) {
-        Usuario usuarioInativado = usuarioRepository.findByIdAndAtivoFalse(id);
+    public ResponseEntity ativarUsuario(String uuid) {
+        Usuario usuarioInativado = usuarioRepository.findByUuid(uuid);
         usuarioInativado.setAtivo(true);
         usuarioRepository.save(usuarioInativado);
         return ResponseEntity.ok().build();

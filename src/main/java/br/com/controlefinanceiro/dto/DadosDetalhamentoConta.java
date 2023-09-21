@@ -13,7 +13,7 @@ public record DadosDetalhamentoConta (@NotBlank String titulo,
                                      String descricao,
                                      @Past(message = "A Data de vencimento não pode ser menor do que a data atual!")
                                      Date dataVencimento,
-                                     @PositiveOrZero(message = "O valor da conta não pode zero ou negativo!")
+                                     @PositiveOrZero(message = "O saldo da conta não pode zero ou negativo!")
                                      BigDecimal valor,
                                      StatusConta statusConta) {
     public DadosDetalhamentoConta(Conta conta){

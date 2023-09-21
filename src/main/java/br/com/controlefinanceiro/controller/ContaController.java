@@ -31,10 +31,10 @@ public class ContaController {
     public ResponseEntity cadastrarConta(@RequestBody @Valid DadosConta dados, UriComponentsBuilder uriBuilder){
         return contaService.cadastrarConta(dados, uriBuilder);
     }
-    @Operation(summary = "Alterar os dados de uma conta através do ID.", method = "PUT")
-    @PutMapping(value = "/{id}")
-    public ResponseEntity alterarConta(@PathVariable("id") Long id, @RequestBody DadosConta dados){
-        return contaService.alterarConta(id, dados);
+    @Operation(summary = "Alterar os dados de uma conta através do UUID.", method = "PUT")
+    @PutMapping(value = "/{uuid}")
+    public ResponseEntity alterarConta(@PathVariable("uuid") String uuid, @RequestBody DadosConta dados){
+        return contaService.alterarConta(uuid, dados);
     }
 
     @Operation(summary = "Listagem paginada de todas as contas ordenadas pela data de vencimento.", method = "GET")
@@ -43,15 +43,15 @@ public class ContaController {
         return contaService.listarContas(pageable);
     }
 
-    @Operation(summary = "Detalhamento da conta através do ID.", method = "GET")
-    @GetMapping(value = "/{id}")
-    public ResponseEntity listarContaById(@PathVariable("id") Long id){
-        return contaService.listarContaById(id);
+    @Operation(summary = "Detalhamento da conta através do UUID.", method = "GET")
+    @GetMapping(value = "/{uuid}")
+    public ResponseEntity listarContaById(@PathVariable("uuid") String uuid){
+        return contaService.listarContaByUuid(uuid);
     }
 
-    @Operation(summary = "Deletando uma conta através do ID.", method = "DELETE")
-    @DeleteMapping(value = "/{id}")
-    public ResponseEntity deletarById(@PathVariable("id") Long id){
-        return contaService.deletarById(id);
+    @Operation(summary = "Deletando uma conta através do UUID.", method = "DELETE")
+    @DeleteMapping(value = "/{uuid}")
+    public ResponseEntity deletarById(@PathVariable("uuid") String uuid){
+        return contaService.deletarByUuid(uuid);
     }
 }

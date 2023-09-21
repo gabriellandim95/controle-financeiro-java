@@ -12,7 +12,7 @@ public record DadosConta(@NotBlank (message = "O titulo não pode ser vazio!")
                          String titulo,
                          String descricao,
                          Date dataVencimento,
-                         @PositiveOrZero(message = "O valor da conta não pode zero ou negativo!")
+                         @PositiveOrZero(message = "O saldo da conta não pode zero ou negativo!")
                          BigDecimal valor,
                          StatusConta statusConta) {
     public DadosConta(Conta conta){

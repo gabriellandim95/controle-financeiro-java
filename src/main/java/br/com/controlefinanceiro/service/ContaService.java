@@ -4,7 +4,7 @@ import br.com.controlefinanceiro.dto.DadosDetalhamentoConta;
 import br.com.controlefinanceiro.dto.DadosConta;
 import br.com.controlefinanceiro.enums.StatusConta;
 import br.com.controlefinanceiro.enums.TipoLogEvento;
-import br.com.controlefinanceiro.infra.exceptions.ContaNotFoundException;
+import br.com.controlefinanceiro.infra.exceptions.RegistroNotFoundException;
 import br.com.controlefinanceiro.model.Conta;
 import br.com.controlefinanceiro.repository.ContaRepository;
 import br.com.controlefinanceiro.repository.UsuarioRepository;
@@ -51,23 +51,23 @@ public class ContaService {
         return ResponseEntity.created(uri).body(new DadosDetalhamentoConta(novaConta));
     }
 
-    public ResponseEntity alterarConta(Long id, DadosConta dados) {
-        Optional<Conta> conta = contaRepository.findById(id);
+    public ResponseEntity alterarConta(String uuid, DadosConta dados) {
+        Optional<Conta> conta = contaRepository.findByUuid(uuid);
 
-        if (conta.isPresent()){
+        if (conta.isPresent()) {
             logAcessoService.gerarEvento(usuarioService.getDadosUsuario().getLogin(), conta.toString(), TipoLogEvento.ACESSO_A_TELA_DE_EDICAO);
 
-                conta.get().setTitulo(dados.titulo());
-                conta.get().setDescricao(dados.descricao());
-                conta.get().setDataVencimento(dados.dataVencimento());
-                conta.get().setValor(dados.valor());
-                conta.get().setStatusConta(dados.statusConta());
-                conta.get().setUsuario(usuarioService.getDadosUsuario());
-                contaRepository.save(conta.get());
+            conta.get().setTitulo(dados.titulo());
+            conta.get().setDescricao(dados.descricao());
+            conta.get().setDataVencimento(dados.dataVencimento());
+            conta.get().setValor(dados.valor());
+            conta.get().setStatusConta(dados.statusConta());
+            conta.get().setUsuario(usuarioService.getDadosUsuario());
+            contaRepository.save(conta.get());
 
             return ResponseEntity.ok(new DadosDetalhamentoConta(conta.get()));
         }
-        throw new ContaNotFoundException();
+        throw new RegistroNotFoundException("Conta");
     }
 
     public ResponseEntity<Page<DadosDetalhamentoConta>> listarContas(Pageable pageable) {
@@ -82,18 +82,22 @@ public class ContaService {
         return ResponseEntity.ok(page);
     }
 
-    public ResponseEntity listarContaById(Long id) {
-        Conta conta = contaRepository.findFirstById(id);
-        logAcessoService.gerarEvento(usuarioService.getDadosUsuario().getUsername(), conta.toString(), TipoLogEvento.ACESSO_A_LISTAR_POR_ID);
-        return ResponseEntity.ok(new DadosDetalhamentoConta(conta));
+    public ResponseEntity listarContaByUuid(String uuid) {
+        Optional<Conta> conta = contaRepository.findByUuid(uuid);
+        if (conta.isPresent()) {
+            logAcessoService.gerarEvento(usuarioService.getDadosUsuario().getUsername(), conta.toString(), TipoLogEvento.ACESSO_A_LISTAR_POR_ID);
+            return ResponseEntity.ok(new DadosDetalhamentoConta(conta.get()));
+        }
+        throw new RegistroNotFoundException("Conta");
     }
 
-    public ResponseEntity deletarById(Long id) {
-        Conta conta = contaRepository.findFirstById(id);
-        if (conta != null) {
-            contaRepository.delete(conta);
+    public ResponseEntity deletarByUuid(String uuid) {
+        Optional<Conta> conta = contaRepository.findByUuid(uuid);
+        if (conta.isPresent()) {
+            contaRepository.delete(conta.get());
+            return ResponseEntity.noContent().build();
         }
-        return ResponseEntity.noContent().build();
+        throw new RegistroNotFoundException("Conta");
     }
 
     @Scheduled(cron = "0 0 5 * * *") //fixedRate = 5000 | cro = "0 0 6 * * *"

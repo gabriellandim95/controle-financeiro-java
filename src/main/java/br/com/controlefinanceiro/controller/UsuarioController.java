@@ -21,21 +21,21 @@ public class UsuarioController {
     public ResponseEntity novoUsuario(@RequestBody @Valid DadosNovoUsuario dados){
         return usuarioService.novoUsuario(dados);
     }
-    @Operation(summary = "Alterando dados de um usuário através do ID.", method = "PUT")
-    @PutMapping(value = "/alterar/{id}")
-    public ResponseEntity alterarUsuario(@PathVariable ("id") Integer id, @RequestBody @Valid DadosAtualizadosUsuario dados){
-        return usuarioService.alterarUsuario(id, dados);
+    @Operation(summary = "Alterando dados de um usuário através do UUID.", method = "PUT")
+    @PutMapping(value = "/alterar/{uuid}")
+    public ResponseEntity alterarUsuario(@PathVariable ("uuid") String uuid, @RequestBody @Valid DadosAtualizadosUsuario dados){
+        return usuarioService.alterarUsuario(uuid, dados);
     }
 
-    @Operation(summary = "Inativando um usuário através do id.", method = "PUT")
-    @PutMapping(value = "/inativar/{id}")
-    public ResponseEntity inativarUsuario(@PathVariable ("id") Integer id){
-        return usuarioService.inativarUsuario(id);
+    @Operation(summary = "Inativando um usuário através do UUID.", method = "PUT")
+    @PutMapping(value = "/inativar/{uuid}")
+    public ResponseEntity inativarUsuario(@PathVariable ("uuid") String uuid){
+        return usuarioService.inativarUsuario(uuid);
     }
 
-    @Operation(summary = "Ativando um usuário através do ID.", method = "PUT")
+    @Operation(summary = "Ativando um usuário através do UUID.", method = "PUT")
     @PutMapping(value = "/ativar/{id}")
-    public ResponseEntity ativarUsuario(@PathVariable ("id") Integer id){
-        return usuarioService.ativarUsuario(id);
+    public ResponseEntity ativarUsuario(@PathVariable ("uuid") String uuid){
+        return usuarioService.ativarUsuario(uuid);
     }
 }

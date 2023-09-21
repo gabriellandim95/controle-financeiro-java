@@ -21,6 +21,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 
 @Entity
 @Audited
@@ -35,6 +36,8 @@ public class  Usuario implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @Column
+    private String uuid = UUID.randomUUID().toString();
     @Column(length = 30)
     private String login;
     @Column(length = 100)

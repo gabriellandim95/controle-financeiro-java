@@ -4,10 +4,12 @@ import br.com.controlefinanceiro.dto.DadosCarteira;
 import br.com.controlefinanceiro.enums.TipoCarteira;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.Type;
 import org.hibernate.envers.Audited;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.UUID;
 
 @Entity
 @Audited
@@ -22,12 +24,14 @@ public class Carteira {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @Column
+    private String uuid = UUID.randomUUID().toString();
     @Column(nullable = false, length = 20)
     private String titulo;
     @Column(nullable = false, length = 100)
     private String descricao;
     @Column(nullable = false)
-    private BigDecimal valor;
+    private BigDecimal saldo;
     @Enumerated(EnumType.STRING)
     private TipoCarteira tipoCarteira;
     @Column
@@ -38,7 +42,8 @@ public class Carteira {
     public Carteira(DadosCarteira dados, Usuario usuarioLogado){
         this.titulo = dados.titulo();
         this.descricao = dados.descricao();
-        this.valor = dados.valor();
+        this.saldo = dados.saldo();
+        this.tipoCarteira = dados.tipoCarteira();
         this.usuario = usuarioLogado;
     }
 
@@ -47,7 +52,7 @@ public class Carteira {
         return "Carteira: " +
                 "titulo='" + titulo + '\'' +
                 ", descricao='" + descricao + '\'' +
-                ", valor=" + valor +
+                ", saldo=" + saldo +
                 ", tipoCarteira=" + tipoCarteira +
                 ", dataCriacaoCarteira=" + dataCriacaoCarteira +
                 ", usuario=" + usuario.getLogin() +

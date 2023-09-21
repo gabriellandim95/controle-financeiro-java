@@ -10,10 +10,10 @@ import java.math.BigDecimal;
 public record DadosCarteira(@NotBlank(message = "Titulo não pode ser vazio!")
                             String titulo,
                             String descricao,
-                            @Positive(message = "O valor não pode ser negativo.")
-                            BigDecimal valor,
+                            @Positive(message = "O saldo não pode ser negativo.")
+                            BigDecimal saldo,
                             TipoCarteira tipoCarteira) {
     public DadosCarteira(Carteira carteira){
-        this(carteira.getTitulo(), carteira.getDescricao(), carteira.getValor(), carteira.getTipoCarteira());
+        this(carteira.getTitulo(), carteira.getDescricao(), carteira.getSaldo(), carteira.getTipoCarteira());
     }
 }

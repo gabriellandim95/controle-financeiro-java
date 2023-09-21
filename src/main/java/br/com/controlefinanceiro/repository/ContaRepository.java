@@ -8,10 +8,13 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 public interface ContaRepository extends JpaRepository<Conta, Long> {
     Conta findFirstById(Long id);
     List<Conta> findAllByDataVencimentoBefore(Date date);
 
     Page<Conta> findAllByUsuario(Pageable pageable, Usuario usuario);
+
+    Optional<Conta> findByUuid(String uuid);
 }
