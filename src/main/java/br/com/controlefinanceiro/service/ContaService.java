@@ -5,7 +5,9 @@ import br.com.controlefinanceiro.dto.DadosConta;
 import br.com.controlefinanceiro.enums.StatusConta;
 import br.com.controlefinanceiro.enums.TipoLogEvento;
 import br.com.controlefinanceiro.infra.exceptions.RegistroNotFoundException;
+import br.com.controlefinanceiro.model.Carteira;
 import br.com.controlefinanceiro.model.Conta;
+import br.com.controlefinanceiro.repository.CarteiraRepository;
 import br.com.controlefinanceiro.repository.ContaRepository;
 import br.com.controlefinanceiro.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +34,8 @@ public class ContaService {
     private static Logger LOGGER = Logger.getLogger(ContaService.class.getName());
     @Autowired
     private ContaRepository contaRepository;
+    @Autowired
+    private CarteiraRepository carteiraRepository;
     @Autowired
     private UsuarioRepository usuarioRepository;
     @Autowired
@@ -98,6 +102,19 @@ public class ContaService {
             return ResponseEntity.noContent().build();
         }
         throw new RegistroNotFoundException("Conta");
+    }
+
+    public ResponseEntity pagarContaByUuid(String uuidConta, String uuidCarteira) {
+        Optional<Conta> conta = contaRepository.findByUuid(uuidConta);
+        Optional<Carteira> carteira = carteiraRepository.findByUuid(uuidCarteira);
+
+        conta.get().setStatusConta(StatusConta.PAGO);
+        carteira.get().setSaldo(carteira.get().getSaldo().subtract(conta.get().getValor()));
+
+        contaRepository.save(conta.get());
+        carteiraRepository.save(carteira.get());
+
+        return ResponseEntity.ok().build();
     }
 
     @Scheduled(cron = "0 0 5 * * *") //fixedRate = 5000 | cro = "0 0 6 * * *"

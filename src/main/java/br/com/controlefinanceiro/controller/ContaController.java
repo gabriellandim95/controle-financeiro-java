@@ -54,4 +54,10 @@ public class ContaController {
     public ResponseEntity deletarById(@PathVariable("uuid") String uuid){
         return contaService.deletarByUuid(uuid);
     }
+
+    @Operation(summary = "Pagando uma conta através do UUID", method = "PUT")
+    @PutMapping(value = "/pagar/{uuidConta}/{uuidCarteira}")
+    public ResponseEntity pagarContaByUuid(@PathVariable("uuidConta") String uuid, @PathVariable("uuidCarteira") String uuidCarteira){
+        return contaService.pagarContaByUuid(uuid, uuidCarteira);
+    }
 }
