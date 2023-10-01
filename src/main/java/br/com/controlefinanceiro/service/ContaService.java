@@ -7,8 +7,10 @@ import br.com.controlefinanceiro.enums.TipoLogEvento;
 import br.com.controlefinanceiro.infra.exceptions.RegistroNotFoundException;
 import br.com.controlefinanceiro.model.Carteira;
 import br.com.controlefinanceiro.model.Conta;
+import br.com.controlefinanceiro.model.HistoricoPagamento;
 import br.com.controlefinanceiro.repository.CarteiraRepository;
 import br.com.controlefinanceiro.repository.ContaRepository;
+import br.com.controlefinanceiro.repository.HistoricoPagamentoRespository;
 import br.com.controlefinanceiro.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -42,6 +44,11 @@ public class ContaService {
     private LogAcessoService logAcessoService;
     @Autowired
     private UsuarioService usuarioService;
+    @Autowired
+    private HistoricoPagamentoRespository historicoPagamentoRespository;
+
+    public ContaService() {
+    }
 
     public ResponseEntity cadastrarConta(DadosConta dados, UriComponentsBuilder uriBuilder) {
         Conta novaConta = new Conta(dados);
@@ -108,12 +115,18 @@ public class ContaService {
         Optional<Conta> conta = contaRepository.findByUuid(uuidConta);
         Optional<Carteira> carteira = carteiraRepository.findByUuid(uuidCarteira);
 
-        conta.get().setStatusConta(StatusConta.PAGO);
-        carteira.get().setSaldo(carteira.get().getSaldo().subtract(conta.get().getValor()));
+        if (conta.isPresent()){
+            conta.get().setStatusConta(StatusConta.PAGO);
+            carteira.get().setSaldo(carteira.get().getSaldo().subtract(conta.get().getValor()));
 
-        contaRepository.save(conta.get());
-        carteiraRepository.save(carteira.get());
+            contaRepository.save(conta.get());
+            carteiraRepository.save(carteira.get());
 
+            HistoricoPagamento historicoPagamento = new HistoricoPagamento(carteira.get(), conta.get(), usuarioService.getDadosUsuario());
+            historicoPagamentoRespository.save(historicoPagamento);
+        }else {
+            throw new RegistroNotFoundException("Conta");
+        }
         return ResponseEntity.ok().build();
     }
 
