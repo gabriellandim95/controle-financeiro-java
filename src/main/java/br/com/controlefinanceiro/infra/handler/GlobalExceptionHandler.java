@@ -2,6 +2,7 @@ package br.com.controlefinanceiro.infra.handler;
 
 import br.com.controlefinanceiro.dto.DadosErrorResponse;
 import br.com.controlefinanceiro.infra.exceptions.RegistroNotFoundException;
+import br.com.controlefinanceiro.infra.exceptions.TipoMoedaNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -14,6 +15,12 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(RegistroNotFoundException.class)
     public ResponseEntity<DadosErrorResponse> handlerRegistroNotFoundException(RegistroNotFoundException ex){
+        DadosErrorResponse dadosErrorResponse = new DadosErrorResponse(HttpStatus.NOT_FOUND.value(), ex.getMessage(), LocalDateTime.now());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(dadosErrorResponse);
+    }
+
+    @ExceptionHandler(TipoMoedaNotFoundException.class)
+    public ResponseEntity<DadosErrorResponse> handlerTipoMoedaNotFoundException(TipoMoedaNotFoundException ex){
         DadosErrorResponse dadosErrorResponse = new DadosErrorResponse(HttpStatus.NOT_FOUND.value(), ex.getMessage(), LocalDateTime.now());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(dadosErrorResponse);
     }
