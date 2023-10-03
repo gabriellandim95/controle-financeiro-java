@@ -9,6 +9,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
 
 @Service
 public class CotacaoMoedaService {
@@ -21,11 +26,11 @@ public class CotacaoMoedaService {
         this.restTemplate = restTemplate;
     }
 
-    public ResponseEntity<DadosGeraisCotacaoMoeda> getCotacao(String moeda) {
-        ResponseEntity<DadosGeraisCotacaoMoeda> response = restTemplate.getForEntity(urlCotacaoMoeda + moeda, DadosGeraisCotacaoMoeda.class);
+    public ResponseEntity<DadosGeraisCotacaoMoeda> getCotacao(String codigoMoeda) {
+        ResponseEntity<DadosGeraisCotacaoMoeda> response = restTemplate.getForEntity(urlCotacaoMoeda + codigoMoeda, DadosGeraisCotacaoMoeda.class);
 
-        if (!TipoMoedaCotacao.getTipoMoedaCotacaoList().contains(moeda)){
-            throw new TipoMoedaNotFoundException(moeda);
+        if (!TipoMoedaCotacao.getCodigos().contains(codigoMoeda)){
+            throw new TipoMoedaNotFoundException(codigoMoeda);
         }
 
         if (response.getStatusCode().is2xxSuccessful()) {

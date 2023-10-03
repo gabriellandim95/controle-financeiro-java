@@ -18,7 +18,7 @@ public class CotacaoMoedaController {
 
     @Operation(summary = "Obter cotação atual das seguintes moedas: EUR, USD, CAD, JPY, CNY", method = "GET")
     @GetMapping(value = "/{moeda}")
-    public ResponseEntity<DadosGeraisCotacaoMoeda> getCotacao(@PathVariable("moeda") String moeda) {
-        return cotacaoMoedaService.getCotacao(moeda);
+    public ResponseEntity<DadosGeraisCotacaoMoeda> getCotacao(@PathVariable("moeda") String codigoMoeda) {
+        return cotacaoMoedaService.getCotacao(codigoMoeda);
     }
 }
