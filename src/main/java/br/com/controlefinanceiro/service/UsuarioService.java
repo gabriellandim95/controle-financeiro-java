@@ -5,6 +5,8 @@ import br.com.controlefinanceiro.dto.DadosNovoUsuario;
 import br.com.controlefinanceiro.model.Usuario;
 import br.com.controlefinanceiro.repository.UsuarioRepository;
 import jakarta.validation.ConstraintViolationException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -16,12 +18,16 @@ import java.util.List;
 @Service
 public class UsuarioService {
 
+    private static final Logger logger = LogManager.getLogger(UsuarioService.class);
+
     @Autowired
     private UsuarioRepository usuarioRepository;
     @Autowired
     private LogAcessoService logAcessoService;
 
     public ResponseEntity novoUsuario(DadosNovoUsuario dados) {
+        logger.info(String.format("O seguinte objeto: %s esta sendo inserido no sistema.", dados.toString()));
+
         Usuario novoUsuario = new Usuario(dados);
 
         List<Usuario> usuariosComLoginExistente = usuarioRepository.findAllByLogin(dados.login());
@@ -36,6 +42,7 @@ public class UsuarioService {
         }
 
         usuarioRepository.save(novoUsuario);
+        logger.info(String.format("Objeto: %s inserido no sistema com sucesso.", dados));
 
         return ResponseEntity.ok().build();
     }
