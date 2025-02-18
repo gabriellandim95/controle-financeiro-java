@@ -2,6 +2,7 @@ package br.com.controlefinanceiro.model;
 
 import br.com.controlefinanceiro.dto.DadosNovoUsuario;
 
+import br.com.controlefinanceiro.utils.BCryptUtils;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -49,18 +50,10 @@ public class  Usuario implements UserDetails {
     @Column
     private Boolean ativo = true;
 
-    public Usuario(String login, String email, String senha, String nivelAcesso, Boolean ativo) {
-        this.login = login;
-        this.email = email;
-        this.senha = senha;
-        this.nivelAcesso = nivelAcesso;
-        this.ativo = ativo;
-    }
-
     public Usuario(DadosNovoUsuario dados) {
         this.login = dados.login();
         this.email = dados.email();
-        this.senha = dados.senha();
+        this.senha = BCryptUtils.converterParaBCrypt(dados.senha());
     }
 
     @Override

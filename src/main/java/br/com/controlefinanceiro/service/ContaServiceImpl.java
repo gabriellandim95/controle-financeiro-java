@@ -4,7 +4,7 @@ import br.com.controlefinanceiro.dto.DadosDetalhamentoConta;
 import br.com.controlefinanceiro.dto.DadosConta;
 import br.com.controlefinanceiro.enums.StatusConta;
 import br.com.controlefinanceiro.enums.TipoLogEvento;
-import br.com.controlefinanceiro.infra.exceptions.RegistroNotFoundException;
+import br.com.controlefinanceiro.infra.exceptions.RegistroNaoEncontradoException;
 import br.com.controlefinanceiro.model.Carteira;
 import br.com.controlefinanceiro.model.Conta;
 import br.com.controlefinanceiro.model.HistoricoPagamento;
@@ -31,9 +31,9 @@ import java.util.Optional;
 import java.util.logging.Logger;
 
 @Service
-public class ContaService {
+public class ContaServiceImpl {
 
-    private static Logger LOGGER = Logger.getLogger(ContaService.class.getName());
+    private static Logger LOGGER = Logger.getLogger(ContaServiceImpl.class.getName());
     @Autowired
     private ContaRepository contaRepository;
     @Autowired
@@ -41,21 +41,21 @@ public class ContaService {
     @Autowired
     private UsuarioRepository usuarioRepository;
     @Autowired
-    private LogAcessoService logAcessoService;
+    private LogAcessoServiceImpl logAcessoServiceImpl;
     @Autowired
-    private UsuarioService usuarioService;
+    private UsuarioServiceImpl usuarioServiceImpl;
     @Autowired
     private HistoricoPagamentoRespository historicoPagamentoRespository;
 
-    public ContaService() {
+    public ContaServiceImpl() {
     }
 
     public ResponseEntity cadastrarConta(DadosConta dados, UriComponentsBuilder uriBuilder) {
         Conta novaConta = new Conta(dados);
-        logAcessoService.gerarEvento(usuarioService.getDadosUsuario().getLogin(), "Nova Conta", TipoLogEvento.ACESSO_A_TELA_DE_CRIACAO);
+        logAcessoServiceImpl.gerarEvento(usuarioServiceImpl.getDadosUsuario().getLogin(), "Nova Conta", TipoLogEvento.ACESSO_A_TELA_DE_CRIACAO);
 
         novaConta.setStatusConta(StatusConta.EM_ABERTO);
-        novaConta.setUsuario(usuarioService.getDadosUsuario());
+        novaConta.setUsuario(usuarioServiceImpl.getDadosUsuario());
         contaRepository.save(novaConta);
 
         URI uri = uriBuilder.path("/conta/{id}").buildAndExpand(novaConta.getId()).toUri();
@@ -66,40 +66,40 @@ public class ContaService {
         Optional<Conta> conta = contaRepository.findByUuid(uuid);
 
         if (conta.isPresent()) {
-            logAcessoService.gerarEvento(usuarioService.getDadosUsuario().getLogin(), conta.toString(), TipoLogEvento.ACESSO_A_TELA_DE_EDICAO);
+            logAcessoServiceImpl.gerarEvento(usuarioServiceImpl.getDadosUsuario().getLogin(), conta.toString(), TipoLogEvento.ACESSO_A_TELA_DE_EDICAO);
 
             conta.get().setTitulo(dados.titulo());
             conta.get().setDescricao(dados.descricao());
             conta.get().setDataVencimento(dados.dataVencimento());
             conta.get().setValor(dados.valor());
             conta.get().setStatusConta(dados.statusConta());
-            conta.get().setUsuario(usuarioService.getDadosUsuario());
+            conta.get().setUsuario(usuarioServiceImpl.getDadosUsuario());
             contaRepository.save(conta.get());
 
             return ResponseEntity.ok(new DadosDetalhamentoConta(conta.get()));
         }
-        throw new RegistroNotFoundException("Conta");
+        throw new RegistroNaoEncontradoException("Conta");
     }
 
     public ResponseEntity<Page<DadosDetalhamentoConta>> listarContas(Pageable pageable) {
         Page page;
-        if (usuarioService.getDadosUsuario().getNivelAcesso().equals("ROLE_ADMIN")) {
+        if (usuarioServiceImpl.getDadosUsuario().getNivelAcesso().equals("ROLE_ADMIN")) {
             page = contaRepository.findAll(pageable).map(DadosDetalhamentoConta::new);
         } else {
-            page = contaRepository.findAllByUsuario(pageable, usuarioService.getDadosUsuario()).map(DadosDetalhamentoConta::new);
+            page = contaRepository.findAllByUsuario(pageable, usuarioServiceImpl.getDadosUsuario()).map(DadosDetalhamentoConta::new);
         }
 
-        logAcessoService.gerarEvento(usuarioService.getDadosUsuario().getLogin(), "Listagem de contas", TipoLogEvento.ACESSO_A_LISTAGEM);
+        logAcessoServiceImpl.gerarEvento(usuarioServiceImpl.getDadosUsuario().getLogin(), "Listagem de contas", TipoLogEvento.ACESSO_A_LISTAGEM);
         return ResponseEntity.ok(page);
     }
 
     public ResponseEntity listarContaByUuid(String uuid) {
         Optional<Conta> conta = contaRepository.findByUuid(uuid);
         if (conta.isPresent()) {
-            logAcessoService.gerarEvento(usuarioService.getDadosUsuario().getUsername(), conta.toString(), TipoLogEvento.ACESSO_A_LISTAR_POR_ID);
+            logAcessoServiceImpl.gerarEvento(usuarioServiceImpl.getDadosUsuario().getUsername(), conta.toString(), TipoLogEvento.ACESSO_A_LISTAR_POR_ID);
             return ResponseEntity.ok(new DadosDetalhamentoConta(conta.get()));
         }
-        throw new RegistroNotFoundException("Conta");
+        throw new RegistroNaoEncontradoException("Conta");
     }
 
     public ResponseEntity deletarByUuid(String uuid) {
@@ -108,7 +108,7 @@ public class ContaService {
             contaRepository.delete(conta.get());
             return ResponseEntity.noContent().build();
         }
-        throw new RegistroNotFoundException("Conta");
+        throw new RegistroNaoEncontradoException("Conta");
     }
 
     public ResponseEntity pagarContaByUuid(String uuidConta, String uuidCarteira) {
@@ -122,10 +122,10 @@ public class ContaService {
             contaRepository.save(conta.get());
             carteiraRepository.save(carteira.get());
 
-            HistoricoPagamento historicoPagamento = new HistoricoPagamento(carteira.get(), conta.get(), usuarioService.getDadosUsuario());
+            HistoricoPagamento historicoPagamento = new HistoricoPagamento(carteira.get(), conta.get(), usuarioServiceImpl.getDadosUsuario());
             historicoPagamentoRespository.save(historicoPagamento);
         }else {
-            throw new RegistroNotFoundException("Conta");
+            throw new RegistroNaoEncontradoException("Conta");
         }
         return ResponseEntity.ok().build();
     }

@@ -8,9 +8,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping(value = "/version")
 public class VersionController {
+    private static final String VERSION = "desenvolvimento";
+
     @Operation(summary = "Retorna a versão da API.", method = "GET")
     @GetMapping
     public String getVersion(){
-        return "desenvolvimento";
+        return VERSION;
     }
 }

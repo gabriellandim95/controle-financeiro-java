@@ -6,9 +6,8 @@
 - Cadastro e controle de carteiras.
 - Pagamentos.
 - Historico de Pagamentos.
-- Cotação de moedas 
-- Notificações via e-mail/SMS (Em desenvolvimento).
-- Hierarquia de usuários Admin/User (Em desenvolvimento).
+- Cotação de moedas.
+
 
 
 ### Tecnologias/Configurações utilizadas:
@@ -20,7 +19,6 @@
 - Autenticação JWT (Bearer) e encriptação Bcrypt.
 - DDL-AUTO no modo "update", o gerenciamento das entidades serão realizadas pelo hibernate.
 - Log de eventos (ex: usuário visualizou alguma tela, a api registra este evento no banco).
-- SonarQube.
 - Documentação: http://localhost:8080/api/controlefinanceiro/swagger-ui/index.html#/
 
 # Getting Started
