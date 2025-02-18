@@ -22,13 +22,13 @@ public class CarteiraController {
 
     @Operation(summary = "Cadastrando uma nova carteira.")
     @PostMapping(value = "/cadastrar")
-    public ResponseEntity cadastrarCarteira(@RequestBody @Valid DadosCarteira dados, UriComponentsBuilder uriBuilder){
+    public ResponseEntity<DadosCarteira> cadastrarCarteira(@RequestBody @Valid DadosCarteira dados, UriComponentsBuilder uriBuilder){
         return carteiraService.cadastrarCarteira(dados, uriBuilder);
     }
 
     @Operation(summary = "Alterando a carteira através do ID.")
     @PutMapping(value = "/{uuid}")
-    public ResponseEntity alterarCarteira(@PathVariable("uuid") String uuid, @RequestBody DadosCarteira dados){
+    public ResponseEntity<DadosCarteira> alterarCarteira(@PathVariable("uuid") String uuid, @RequestBody DadosCarteira dados){
         return carteiraService.alterarCarteira(uuid, dados);
     }
 
@@ -40,13 +40,13 @@ public class CarteiraController {
 
     @Operation(summary = "Detalhando carteira através do ID.")
     @GetMapping(value = "/{uuid}")
-    public ResponseEntity listarCarteiraByUuid(@PathVariable("uuid") String uuid){
+    public ResponseEntity<DadosCarteira> listarCarteiraByUuid(@PathVariable("uuid") String uuid){
         return carteiraService.detalharCarteiraByUuid(uuid);
     }
 
     @Operation(summary = "Deletando carteira através do ID")
     @DeleteMapping(value = "/{uuid}")
-    public ResponseEntity deletarCarteiraByUuid(@PathVariable("uuid") String uuid){
+    public ResponseEntity<Void> deletarCarteiraByUuid(@PathVariable("uuid") String uuid){
         return carteiraService.deletarCarteiraByUuid(uuid);
     }
 }

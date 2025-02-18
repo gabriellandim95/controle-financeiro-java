@@ -3,9 +3,9 @@ package br.com.controlefinanceiro.infra.handler;
 import br.com.controlefinanceiro.dto.DadosErrorResponse;
 import br.com.controlefinanceiro.dto.DadosValidacaoSpring;
 import br.com.controlefinanceiro.dto.DadosValidacaoSpringResponse;
-import br.com.controlefinanceiro.infra.exceptions.AutenticacaoException;
-import br.com.controlefinanceiro.infra.exceptions.RegistroNaoEncontradoException;
-import br.com.controlefinanceiro.infra.exceptions.TipoMoedaNotFoundException;
+import br.com.controlefinanceiro.infra.exceptions.*;
+import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.auth0.jwt.exceptions.TokenExpiredException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.AuthenticationException;
@@ -19,7 +19,23 @@ import java.util.List;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(TipoMoedaException.class)
+    public ResponseEntity<DadosErrorResponse> handlerTipoMoedaException(TipoMoedaException ex){
+        DadosErrorResponse dadosErrorResponse = new DadosErrorResponse(HttpStatus.BAD_REQUEST.value(), ex.getMessage(), LocalDateTime.now());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(dadosErrorResponse);
+    }
 
+    @ExceptionHandler(AutorException.class)
+    public ResponseEntity<DadosErrorResponse> autores(AutorException ex) {
+        DadosErrorResponse dadosErrorResponse = new DadosErrorResponse(HttpStatus.FORBIDDEN.value(), ex.getMessage(), LocalDateTime.now());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(dadosErrorResponse);
+    }
+
+    @ExceptionHandler(ContaException.class)
+    public ResponseEntity<DadosErrorResponse> handlerContaException(ContaException ex) {
+        DadosErrorResponse dadosErrorResponse = new DadosErrorResponse(HttpStatus.BAD_REQUEST.value(), ex.getMessage(), LocalDateTime.now());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(dadosErrorResponse);
+    }
 
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<DadosErrorResponse> handlerUsernameNotFoundException(AuthenticationException ex) {
@@ -49,6 +65,12 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(AutenticacaoException.class)
     public ResponseEntity<DadosErrorResponse> handlerForbiddenStatus(AutenticacaoException ex){
+        DadosErrorResponse dadosErrorResponse = new DadosErrorResponse(HttpStatus.FORBIDDEN.value(), ex.getMessage(), LocalDateTime.now());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(dadosErrorResponse);
+    }
+
+    @ExceptionHandler(TokenExpiredException.class)
+    public ResponseEntity<DadosErrorResponse> handlerJWTVerificationException(TokenExpiredException ex){
         DadosErrorResponse dadosErrorResponse = new DadosErrorResponse(HttpStatus.FORBIDDEN.value(), ex.getMessage(), LocalDateTime.now());
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(dadosErrorResponse);
     }

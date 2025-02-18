@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,12 +29,12 @@ public class ContaController {
 
     @Operation(summary = "Efetuar cadastro de uma nova conta.", method = "POST")
     @PostMapping(value = "/cadastrar")
-    public ResponseEntity cadastrarConta(@RequestBody @Valid DadosConta dados, UriComponentsBuilder uriBuilder){
+    public ResponseEntity<DadosDetalhamentoConta> cadastrarConta(@RequestBody @Valid DadosConta dados, UriComponentsBuilder uriBuilder){
         return contaServiceImpl.cadastrarConta(dados, uriBuilder);
     }
     @Operation(summary = "Alterar os dados de uma conta através do UUID.", method = "PUT")
     @PutMapping(value = "/{uuid}")
-    public ResponseEntity alterarConta(@PathVariable("uuid") String uuid, @RequestBody DadosConta dados){
+    public ResponseEntity<DadosDetalhamentoConta> alterarConta(@PathVariable("uuid") String uuid, @RequestBody DadosConta dados){
         return contaServiceImpl.alterarConta(uuid, dados);
     }
 
@@ -45,19 +46,19 @@ public class ContaController {
 
     @Operation(summary = "Detalhamento da conta através do UUID.", method = "GET")
     @GetMapping(value = "/{uuid}")
-    public ResponseEntity listarContaById(@PathVariable("uuid") String uuid){
+    public ResponseEntity<DadosDetalhamentoConta> listarContaById(@PathVariable("uuid") String uuid){
         return contaServiceImpl.listarContaByUuid(uuid);
     }
 
     @Operation(summary = "Deletando uma conta através do UUID.", method = "DELETE")
     @DeleteMapping(value = "/{uuid}")
-    public ResponseEntity deletarById(@PathVariable("uuid") String uuid){
+    public ResponseEntity<Void> deletarById(@PathVariable("uuid") String uuid){
         return contaServiceImpl.deletarByUuid(uuid);
     }
 
     @Operation(summary = "Pagando uma conta através do UUID", method = "PUT")
     @PutMapping(value = "/pagar/{uuidConta}/{uuidCarteira}")
-    public ResponseEntity pagarContaByUuid(@PathVariable("uuidConta") String uuid, @PathVariable("uuidCarteira") String uuidCarteira){
+    public ResponseEntity<Void> pagarContaByUuid(@PathVariable("uuidConta") String uuid, @PathVariable("uuidCarteira") String uuidCarteira){
         return contaServiceImpl.pagarContaByUuid(uuid, uuidCarteira);
     }
 }

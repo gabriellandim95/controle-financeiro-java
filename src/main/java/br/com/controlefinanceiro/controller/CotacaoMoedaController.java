@@ -1,6 +1,7 @@
 package br.com.controlefinanceiro.controller;
 
 import br.com.controlefinanceiro.dto.DadosGeraisCotacaoMoeda;
+import br.com.controlefinanceiro.interfaces.CotacaoMoedaService;
 import br.com.controlefinanceiro.service.CotacaoMoedaServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class CotacaoMoedaController {
 
-    private final CotacaoMoedaServiceImpl cotacaoMoedaService;
+    private final CotacaoMoedaService cotacaoMoedaService;
 
     @Operation(summary = "Obter cotação atual das seguintes moedas: EUR, USD, CAD, JPY, CNY", method = "GET")
     @GetMapping(value = "/{moeda}")

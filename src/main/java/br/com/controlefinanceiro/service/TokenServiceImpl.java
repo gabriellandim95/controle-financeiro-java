@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.time.ZoneOffset;
 
 @Service
@@ -64,7 +63,7 @@ public class TokenServiceImpl implements TokenService {
     }
 
     private Instant dataExpiracao() {
-        return LocalDateTime.now(ZoneId.of("America/Sao_Paulo"))
+        return LocalDateTime.now(ZoneOffset.UTC)
                 .plusMinutes(minuntosLimiteToken)
                 .toInstant(ZoneOffset.UTC);
     }

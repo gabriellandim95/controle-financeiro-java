@@ -2,6 +2,7 @@ package br.com.controlefinanceiro.service;
 
 import br.com.controlefinanceiro.dto.DadosCarteira;
 import br.com.controlefinanceiro.enums.TipoLogEvento;
+import br.com.controlefinanceiro.infra.exceptions.AutorException;
 import br.com.controlefinanceiro.infra.exceptions.RegistroNaoEncontradoException;
 import br.com.controlefinanceiro.interfaces.CarteiraService;
 import br.com.controlefinanceiro.interfaces.LogAcessoService;
@@ -24,7 +25,6 @@ import java.net.URI;
 @Slf4j
 public class CarteiraServiceImpl implements CarteiraService {
 
-    private static final String ROLE_ADMIN = "ROLE_ADMIN";
     private final CarteiraRepository carteiraRepository;
     private final LogAcessoService logAcessoService;
     private final UsuarioService usuarioService;
@@ -45,6 +45,7 @@ public class CarteiraServiceImpl implements CarteiraService {
     @Override
     public ResponseEntity<DadosCarteira> alterarCarteira(String uuid, DadosCarteira dados) {
         Carteira carteira = getCarteiraByUuid(uuid);
+        verificaAutorDaCarteira(carteira);
 
         logAcessoService.gerarEvento(usuarioService.getDadosUsuarioLogado().getLogin(), carteira.toString(), TipoLogEvento.ACESSO_A_TELA_DE_EDICAO);
 
@@ -56,17 +57,11 @@ public class CarteiraServiceImpl implements CarteiraService {
 
         log.info("Usuario {} alterou a carteira {} com sucesso.", carteira.getUsuario().getLogin(), carteira.getTitulo());
         return ResponseEntity.ok(new DadosCarteira(carteira));
-
     }
 
     @Override
     public ResponseEntity<Page<DadosCarteira>> listarCarteiras(Pageable pageable) {
-        Page page;
-        if (usuarioService.getDadosUsuarioLogado().getNivelAcesso().equals(ROLE_ADMIN)) {
-            page = carteiraRepository.findAll(pageable).map(DadosCarteira::new);
-        } else {
-            page = carteiraRepository.findAllByUsuario(pageable, usuarioService.getDadosUsuarioLogado()).map(DadosCarteira::new);
-        }
+        Page page = carteiraRepository.findAllByUsuario(pageable, usuarioService.getDadosUsuarioLogado()).map(DadosCarteira::new);
 
         logAcessoService.gerarEvento(usuarioService.getDadosUsuarioLogado().getLogin(), "Listagem de carteiras", TipoLogEvento.ACESSO_A_LISTAGEM);
         log.info("Usuario {} listou todas as suas carteiras.", usuarioService.getDadosUsuarioLogado().getLogin());
@@ -74,8 +69,9 @@ public class CarteiraServiceImpl implements CarteiraService {
     }
 
     @Override
-    public ResponseEntity detalharCarteiraByUuid(String uuid) {
+    public ResponseEntity<DadosCarteira> detalharCarteiraByUuid(String uuid) {
         Carteira carteira = getCarteiraByUuid(uuid);
+        verificaAutorDaCarteira(carteira);
         logAcessoService.gerarEvento(usuarioService.getDadosUsuarioLogado().getUsername(), carteira.toString(), TipoLogEvento.ACESSO_A_LISTAR_POR_ID);
 
         log.info("Usuario {} acessou a carteira {}.", carteira.getUsuario().getLogin(), carteira.getTitulo());
@@ -83,8 +79,9 @@ public class CarteiraServiceImpl implements CarteiraService {
     }
 
     @Override
-    public ResponseEntity deletarCarteiraByUuid(String uuid) {
+    public ResponseEntity<Void> deletarCarteiraByUuid(String uuid) {
         Carteira carteira = getCarteiraByUuid(uuid);
+        verificaAutorDaCarteira(carteira);
         carteiraRepository.delete(carteira);
 
         log.info("Usuario {} deletou a carteira {} com sucesso.", carteira.getUsuario().getLogin(), carteira.getTitulo());
@@ -94,9 +91,15 @@ public class CarteiraServiceImpl implements CarteiraService {
 
     private Carteira getCarteiraByUuid(String uuid) {
         Carteira carteira = carteiraRepository.findByUuid(uuid)
-                .orElseThrow(() -> new RegistroNaoEncontradoException(messageService.getMessage("api.carteira.id.nao.encontrado", uuid)));
+                .orElseThrow(() -> new RegistroNaoEncontradoException(messageService.getMessage("api.carteira.id.nao.encontrada", uuid)));
 
         log.info("Usuario {} obtendo dados da carteira {}", carteira.getUsuario().getLogin(), carteira.getTitulo());
         return carteira;
+    }
+
+    private void verificaAutorDaCarteira(Carteira carteira) {
+        if (!usuarioService.getDadosUsuarioLogado().getEmail().equals(carteira.getUsuario().getEmail())) {
+            throw new AutorException(messageService.getMessage("api.carteira.acesso.negado"));
+        }
     }
 }
