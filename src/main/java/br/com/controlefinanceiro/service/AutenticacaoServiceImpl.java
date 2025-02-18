@@ -48,7 +48,7 @@ public class AutenticacaoServiceImpl implements AutenticacaoService {
     public ResponseEntity logout(String authorizationHeader) {
         String token = authorizationHeader.replace("Bearer ", "");
         tokenBlackListService.addBlackList(token);
-        Usuario usuario = usuarioService.getDadosUsuario();
+        Usuario usuario = usuarioService.getDadosUsuarioLogado();
 
         SecurityContextHolder.clearContext();
         log.info("Usuario {} saiu do sistema.", usuario.getLogin());

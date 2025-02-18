@@ -4,89 +4,99 @@ import br.com.controlefinanceiro.dto.DadosCarteira;
 import br.com.controlefinanceiro.enums.TipoLogEvento;
 import br.com.controlefinanceiro.infra.exceptions.RegistroNaoEncontradoException;
 import br.com.controlefinanceiro.interfaces.CarteiraService;
+import br.com.controlefinanceiro.interfaces.LogAcessoService;
+import br.com.controlefinanceiro.interfaces.MessageService;
+import br.com.controlefinanceiro.interfaces.UsuarioService;
 import br.com.controlefinanceiro.model.Carteira;
 import br.com.controlefinanceiro.repository.CarteiraRepository;
-import br.com.controlefinanceiro.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class CarteiraServiceImpl implements CarteiraService {
 
-    private CarteiraRepository carteiraRepository;
-    private UsuarioRepository usuarioRepository;
-    private LogAcessoServiceImpl logAcessoServiceImpl;
-    private UsuarioServiceImpl usuarioServiceImpl;
+    private static final String ROLE_ADMIN = "ROLE_ADMIN";
+    private final CarteiraRepository carteiraRepository;
+    private final LogAcessoService logAcessoService;
+    private final UsuarioService usuarioService;
+    private final MessageService messageService;
 
     @Override
     public ResponseEntity<DadosCarteira> cadastrarCarteira(DadosCarteira dados, UriComponentsBuilder uriBuilder) {
-        log.info("teste");
-        logAcessoServiceImpl.gerarEvento(usuarioServiceImpl.getDadosUsuario().getLogin(), "Nova Conta", TipoLogEvento.ACESSO_A_TELA_DE_CRIACAO);
+        logAcessoService.gerarEvento(usuarioService.getDadosUsuarioLogado().getLogin(), "Nova Conta", TipoLogEvento.ACESSO_A_TELA_DE_CRIACAO);
 
-        Carteira novaCarteira = new Carteira(dados, usuarioServiceImpl.getDadosUsuario());
+        Carteira novaCarteira = new Carteira(dados, usuarioService.getDadosUsuarioLogado());
         carteiraRepository.save(novaCarteira);
 
         URI uri = uriBuilder.path("/carteira/{uuid}").buildAndExpand(novaCarteira.getUuid()).toUri();
+        log.info("Usuario {} cadastrou a carteira {} com sucesso.", novaCarteira.getUsuario().getLogin(), novaCarteira.getTitulo());
         return ResponseEntity.created(uri).body(new DadosCarteira(novaCarteira));
     }
 
     @Override
     public ResponseEntity<DadosCarteira> alterarCarteira(String uuid, DadosCarteira dados) {
-        Optional<Carteira> carteira = carteiraRepository.findByUuid(uuid);
+        Carteira carteira = getCarteiraByUuid(uuid);
 
-        if (carteira.isPresent()){
-            logAcessoServiceImpl.gerarEvento(usuarioServiceImpl.getDadosUsuario().getLogin(), carteira.get().toString(), TipoLogEvento.ACESSO_A_TELA_DE_EDICAO);
+        logAcessoService.gerarEvento(usuarioService.getDadosUsuarioLogado().getLogin(), carteira.toString(), TipoLogEvento.ACESSO_A_TELA_DE_EDICAO);
 
-            carteira.get().setTitulo(dados.titulo());
-            carteira.get().setDescricao(dados.descricao());
-            carteira.get().setSaldo(dados.saldo());
-            carteira.get().setTipoCarteira(dados.tipoCarteira());
-            carteiraRepository.save(carteira.get());
+        carteira.setTitulo(dados.titulo());
+        carteira.setDescricao(dados.descricao());
+        carteira.setSaldo(dados.saldo());
+        carteira.setTipoCarteira(dados.tipoCarteira());
+        carteiraRepository.save(carteira);
 
-            return ResponseEntity.ok(new DadosCarteira(carteira.get()));
-        }
-        throw new RegistroNaoEncontradoException("Carteira");
+        log.info("Usuario {} alterou a carteira {} com sucesso.", carteira.getUsuario().getLogin(), carteira.getTitulo());
+        return ResponseEntity.ok(new DadosCarteira(carteira));
+
     }
 
     @Override
     public ResponseEntity<Page<DadosCarteira>> listarCarteiras(Pageable pageable) {
         Page page;
-        if (usuarioServiceImpl.getDadosUsuario().getNivelAcesso().equals("ROLE_ADMIN")){
+        if (usuarioService.getDadosUsuarioLogado().getNivelAcesso().equals(ROLE_ADMIN)) {
             page = carteiraRepository.findAll(pageable).map(DadosCarteira::new);
-        }else {
-            page = carteiraRepository.findAllByUsuario(pageable, usuarioServiceImpl.getDadosUsuario()).map(DadosCarteira::new);
+        } else {
+            page = carteiraRepository.findAllByUsuario(pageable, usuarioService.getDadosUsuarioLogado()).map(DadosCarteira::new);
         }
 
-        logAcessoServiceImpl.gerarEvento(usuarioServiceImpl.getDadosUsuario().getLogin(), "Listagem de carteiras", TipoLogEvento.ACESSO_A_LISTAGEM);
+        logAcessoService.gerarEvento(usuarioService.getDadosUsuarioLogado().getLogin(), "Listagem de carteiras", TipoLogEvento.ACESSO_A_LISTAGEM);
+        log.info("Usuario {} listou todas as suas carteiras.", usuarioService.getDadosUsuarioLogado().getLogin());
         return ResponseEntity.ok(page);
     }
 
     @Override
-    public ResponseEntity listarCarteiraByUuid(String uuid) {
-        Optional<Carteira> carteira = carteiraRepository.findByUuid(uuid);
-        logAcessoServiceImpl.gerarEvento(usuarioServiceImpl.getDadosUsuario().getUsername(), carteira.get().toString(), TipoLogEvento.ACESSO_A_LISTAR_POR_ID);
+    public ResponseEntity detalharCarteiraByUuid(String uuid) {
+        Carteira carteira = getCarteiraByUuid(uuid);
+        logAcessoService.gerarEvento(usuarioService.getDadosUsuarioLogado().getUsername(), carteira.toString(), TipoLogEvento.ACESSO_A_LISTAR_POR_ID);
 
-        return carteira.isPresent() ? ResponseEntity.ok(new DadosCarteira(carteira.get())) : ResponseEntity.status(HttpStatus.NOT_FOUND).body(new RegistroNaoEncontradoException("Carteira"));
+        log.info("Usuario {} acessou a carteira {}.", carteira.getUsuario().getLogin(), carteira.getTitulo());
+        return ResponseEntity.ok(new DadosCarteira(carteira));
     }
 
     @Override
     public ResponseEntity deletarCarteiraByUuid(String uuid) {
-        Optional<Carteira> carteira = carteiraRepository.findByUuid(uuid);
-        if (carteira.isPresent()){
-            carteiraRepository.delete(carteira.get());
-            return ResponseEntity.noContent().build();
-        }
-        throw new RegistroNaoEncontradoException("Carteira");
+        Carteira carteira = getCarteiraByUuid(uuid);
+        carteiraRepository.delete(carteira);
+
+        log.info("Usuario {} deletou a carteira {} com sucesso.", carteira.getUsuario().getLogin(), carteira.getTitulo());
+        return ResponseEntity.noContent().build();
+
+    }
+
+    private Carteira getCarteiraByUuid(String uuid) {
+        Carteira carteira = carteiraRepository.findByUuid(uuid)
+                .orElseThrow(() -> new RegistroNaoEncontradoException(messageService.getMessage("api.carteira.id.nao.encontrado", uuid)));
+
+        log.info("Usuario {} obtendo dados da carteira {}", carteira.getUsuario().getLogin(), carteira.getTitulo());
+        return carteira;
     }
 }

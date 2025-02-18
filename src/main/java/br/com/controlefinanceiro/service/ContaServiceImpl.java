@@ -52,10 +52,10 @@ public class ContaServiceImpl {
 
     public ResponseEntity cadastrarConta(DadosConta dados, UriComponentsBuilder uriBuilder) {
         Conta novaConta = new Conta(dados);
-        logAcessoServiceImpl.gerarEvento(usuarioServiceImpl.getDadosUsuario().getLogin(), "Nova Conta", TipoLogEvento.ACESSO_A_TELA_DE_CRIACAO);
+        logAcessoServiceImpl.gerarEvento(usuarioServiceImpl.getDadosUsuarioLogado().getLogin(), "Nova Conta", TipoLogEvento.ACESSO_A_TELA_DE_CRIACAO);
 
         novaConta.setStatusConta(StatusConta.EM_ABERTO);
-        novaConta.setUsuario(usuarioServiceImpl.getDadosUsuario());
+        novaConta.setUsuario(usuarioServiceImpl.getDadosUsuarioLogado());
         contaRepository.save(novaConta);
 
         URI uri = uriBuilder.path("/conta/{id}").buildAndExpand(novaConta.getId()).toUri();
@@ -66,14 +66,14 @@ public class ContaServiceImpl {
         Optional<Conta> conta = contaRepository.findByUuid(uuid);
 
         if (conta.isPresent()) {
-            logAcessoServiceImpl.gerarEvento(usuarioServiceImpl.getDadosUsuario().getLogin(), conta.toString(), TipoLogEvento.ACESSO_A_TELA_DE_EDICAO);
+            logAcessoServiceImpl.gerarEvento(usuarioServiceImpl.getDadosUsuarioLogado().getLogin(), conta.toString(), TipoLogEvento.ACESSO_A_TELA_DE_EDICAO);
 
             conta.get().setTitulo(dados.titulo());
             conta.get().setDescricao(dados.descricao());
             conta.get().setDataVencimento(dados.dataVencimento());
             conta.get().setValor(dados.valor());
             conta.get().setStatusConta(dados.statusConta());
-            conta.get().setUsuario(usuarioServiceImpl.getDadosUsuario());
+            conta.get().setUsuario(usuarioServiceImpl.getDadosUsuarioLogado());
             contaRepository.save(conta.get());
 
             return ResponseEntity.ok(new DadosDetalhamentoConta(conta.get()));
@@ -83,20 +83,20 @@ public class ContaServiceImpl {
 
     public ResponseEntity<Page<DadosDetalhamentoConta>> listarContas(Pageable pageable) {
         Page page;
-        if (usuarioServiceImpl.getDadosUsuario().getNivelAcesso().equals("ROLE_ADMIN")) {
+        if (usuarioServiceImpl.getDadosUsuarioLogado().getNivelAcesso().equals("ROLE_ADMIN")) {
             page = contaRepository.findAll(pageable).map(DadosDetalhamentoConta::new);
         } else {
-            page = contaRepository.findAllByUsuario(pageable, usuarioServiceImpl.getDadosUsuario()).map(DadosDetalhamentoConta::new);
+            page = contaRepository.findAllByUsuario(pageable, usuarioServiceImpl.getDadosUsuarioLogado()).map(DadosDetalhamentoConta::new);
         }
 
-        logAcessoServiceImpl.gerarEvento(usuarioServiceImpl.getDadosUsuario().getLogin(), "Listagem de contas", TipoLogEvento.ACESSO_A_LISTAGEM);
+        logAcessoServiceImpl.gerarEvento(usuarioServiceImpl.getDadosUsuarioLogado().getLogin(), "Listagem de contas", TipoLogEvento.ACESSO_A_LISTAGEM);
         return ResponseEntity.ok(page);
     }
 
     public ResponseEntity listarContaByUuid(String uuid) {
         Optional<Conta> conta = contaRepository.findByUuid(uuid);
         if (conta.isPresent()) {
-            logAcessoServiceImpl.gerarEvento(usuarioServiceImpl.getDadosUsuario().getUsername(), conta.toString(), TipoLogEvento.ACESSO_A_LISTAR_POR_ID);
+            logAcessoServiceImpl.gerarEvento(usuarioServiceImpl.getDadosUsuarioLogado().getUsername(), conta.toString(), TipoLogEvento.ACESSO_A_LISTAR_POR_ID);
             return ResponseEntity.ok(new DadosDetalhamentoConta(conta.get()));
         }
         throw new RegistroNaoEncontradoException("Conta");
@@ -122,7 +122,7 @@ public class ContaServiceImpl {
             contaRepository.save(conta.get());
             carteiraRepository.save(carteira.get());
 
-            HistoricoPagamento historicoPagamento = new HistoricoPagamento(carteira.get(), conta.get(), usuarioServiceImpl.getDadosUsuario());
+            HistoricoPagamento historicoPagamento = new HistoricoPagamento(carteira.get(), conta.get(), usuarioServiceImpl.getDadosUsuarioLogado());
             historicoPagamentoRespository.save(historicoPagamento);
         }else {
             throw new RegistroNaoEncontradoException("Conta");

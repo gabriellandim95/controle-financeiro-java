@@ -10,5 +10,5 @@ public interface UsuarioService {
     ResponseEntity alterarUsuario(String uuid, DadosAtualizadosUsuario dados);
     ResponseEntity inativarUsuario(String uuid);
     ResponseEntity ativarUsuario(String uuid);
-    Usuario getDadosUsuario();
+    Usuario getDadosUsuarioLogado();
 }

@@ -10,6 +10,6 @@ public interface CarteiraService {
     ResponseEntity<DadosCarteira> cadastrarCarteira(DadosCarteira dados, UriComponentsBuilder uriBuilder);
     ResponseEntity<DadosCarteira> alterarCarteira(String uuid, DadosCarteira dados);
     ResponseEntity<Page<DadosCarteira>> listarCarteiras(Pageable pageable);
-    ResponseEntity listarCarteiraByUuid(String uuid);
+    ResponseEntity detalharCarteiraByUuid(String uuid);
     ResponseEntity deletarCarteiraByUuid(String uuid);
 }
