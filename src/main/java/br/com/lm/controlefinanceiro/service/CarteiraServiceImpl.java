@@ -39,7 +39,7 @@ public class CarteiraServiceImpl implements CarteiraService {
         Carteira novaCarteira = new Carteira(dados, usuarioService.getDadosUsuarioLogado());
         carteiraRepository.save(novaCarteira);
 
-        URI uri = uriBuilder.path("/carteira/{uuid}").buildAndExpand(novaCarteira.getUuid()).toUri();
+        URI uri = uriBuilder.path("/carteiras/{uuid}").buildAndExpand(novaCarteira.getUuid()).toUri();
         log.info("Usuario {} cadastrou a carteira {} com sucesso.", novaCarteira.getUsuario().getLogin(), novaCarteira.getTitulo());
         return ResponseEntity.created(uri).body(new DadosCarteira(novaCarteira));
     }
